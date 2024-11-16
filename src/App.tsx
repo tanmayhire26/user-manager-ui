@@ -1,26 +1,25 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Route,BrowserRouter as Router, Routes } from 'react-router-dom';
+import NavigationBar from './common/Navbar';
+import Users from './components/Users';
+import Roles from './components/Roles';
+import Home from './components/Home';
+import LoginForm from './components/LoginForm';
+import Logout from './components/Logout';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App: React.FC = () => {
+    return (
+        <Router>
+            <NavigationBar />
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<LoginForm />} />
+                <Route path="/logout" element={<Logout />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/roles" element={<Roles />} />
+            </Routes>
+        </Router>
+    );
+};
 
 export default App;
