@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table, Form, Modal } from 'react-bootstrap';
+import { BASE_URL } from '../constants';
 
 interface Role {
-    id: number;
+    _id: string;
     name: string;
 }
 
@@ -17,7 +18,7 @@ const Roles: React.FC = () => {
     }, []);
 
     const fetchRoles = async () => {
-        const response = await fetch('/api/roles');
+        const response = await fetch(`${BASE_URL}/roles`);
         const data = await response.json();
         setRoles(data);
     };
@@ -41,13 +42,13 @@ const Roles: React.FC = () => {
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         if (currentRole) {
-            await fetch(`/api/roles/${currentRole.id}`, {
+            await fetch(`${BASE_URL}/roles/${currentRole._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name }),
             });
         } else {
-            await fetch('/api/roles', {
+            await fetch(`${BASE_URL}/roles`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name }),
@@ -57,8 +58,8 @@ const Roles: React.FC = () => {
         handleClose();
     };
 
-    const handleDelete = async (id: number) => {
-        await fetch(`/api/roles/${id}`, { method: 'DELETE' });
+    const handleDelete = async (id: string) => {
+        await fetch(`${BASE_URL}/roles/${id}`, { method: 'DELETE' });
         fetchRoles();
     };
 
@@ -75,13 +76,13 @@ const Roles: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {roles.map(role => (
-                        <tr key={role.id}>
-                            <td>{role.id}</td>
+                    {roles.map((role, index) => (
+                        <tr key={role._id}>
+                            <td>{index+1}</td>
                             <td>{role.name}</td>
                             <td>
                                 <Button variant="warning" onClick={() => handleShow(role)}>Edit</Button>
-                                <Button variant="danger" onClick={() => handleDelete(role.id)}>Delete</Button>
+                                <Button variant="danger" onClick={() => handleDelete(role._id)}>Delete</Button>
                             </td>
                         </tr>
                     ))}

@@ -1,21 +1,47 @@
 import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
+import { BASE_URL } from '../constants';
 
-const LoginForm: React.FC = () => {
+interface LoginFormProps {
+    onLoginSuccess: (token: string) => void; // Prop to handle successful login
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+        
+        // Simulate an API call to authenticate user and get a token
+        try {
+            const response = await fetch(`${BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to login');
+            }
+
+            const data = await response.json();
+            console.log("data..........after login call...", data)
+            onLoginSuccess(data.token); // Call the success handler with the token
+        } catch (error) {
+            console.error('Error logging in:', error);
+        }
     };
 
     return (
         <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formBasicEmail">
-                <Form.Label>Email address</Form.Label>
+                <Form.Label>Username</Form.Label>
                 <Form.Control 
-                    type="email" 
-                    placeholder="Enter email" 
+                    type="text"
+                    placeholder="Enter username" 
                     value={username} 
                     onChange={(e) => setUsername(e.target.value)} 
                 />
