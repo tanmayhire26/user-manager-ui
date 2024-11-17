@@ -7,6 +7,7 @@ import Home from './components/Home';
 import LoginForm from './components/LoginForm';
 import Logout from './components/Logout';
 import { Modal } from 'react-bootstrap';
+import Blogs from './components/Blogs';
 
 const App: React.FC = () => {
 
@@ -30,24 +31,30 @@ const App: React.FC = () => {
         handleLoginModalClose();
     };
     return (
-        <Router>
-            <NavigationBar onLoginClick={() => setShowLoginModal(true)} />
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/logout" element={<Logout />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/roles" element={<Roles />} />
-            </Routes>
+      <Router>
+        <NavigationBar onLoginClick={() => setShowLoginModal(true)} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/roles" element={<Roles />} />
+          <Route
+            path="/blogs"
+            element={
+              <Blogs /> 
+            }
+          />
+        </Routes>
 
-            <Modal show={showLoginModal} onHide={handleLoginModalClose}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Login</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <LoginForm onLoginSuccess={handleLoginSuccess} />
-                </Modal.Body>
-            </Modal>
-        </Router>
+        <Modal show={showLoginModal} onHide={handleLoginModalClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Login</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <LoginForm onLoginSuccess={handleLoginSuccess} />
+          </Modal.Body>
+        </Modal>
+      </Router>
     );
 };
 

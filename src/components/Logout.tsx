@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const Logout: React.FC = () => {
+
+    useEffect(()=>{
+        localStorage.removeItem('token');
+        return()=>{}
+    },[])
     return <h2>You are logged out</h2>;
 };
 
