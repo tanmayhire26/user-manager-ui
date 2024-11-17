@@ -27,7 +27,13 @@ const Roles: React.FC = () => {
     }, []);
 
     const fetchRoles = async () => {
-        const response = await fetch(`${BASE_URL}/roles`);
+        const response = await fetch(`${BASE_URL}/roles`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await response.json();
         setRoles(data);
     };
@@ -52,15 +58,21 @@ const Roles: React.FC = () => {
         event.preventDefault();
         if (currentRole) {
             await fetch(`${BASE_URL}/roles/${currentRole._id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name }),
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({ name }),
             });
         } else {
             await fetch(`${BASE_URL}/roles`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name }),
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({ name }),
             });
         }
         fetchRoles();
@@ -68,7 +80,13 @@ const Roles: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        await fetch(`${BASE_URL}/roles/${id}`, { method: 'DELETE' });
+        await fetch(`${BASE_URL}/roles/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         fetchRoles();
     };
 

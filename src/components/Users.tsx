@@ -32,7 +32,13 @@ const Users: React.FC = () => {
     }, []);
 
     const fetchUsers = async () => {
-        const response = await fetch(`${BASE_URL}/users`);
+        const response = await fetch(`${BASE_URL}/users`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await response.json();
         setUsers(data);
     };
@@ -59,15 +65,21 @@ const Users: React.FC = () => {
         event.preventDefault();
         if (currentUser) {
             await fetch(`${BASE_URL}/users/${currentUser._id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, username, password }),
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({ name, username, password }),
             });
         } else {
             await fetch(`${BASE_URL}/users`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password }),
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({ username, email, password }),
             });
         }
         fetchUsers();
@@ -75,7 +87,13 @@ const Users: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        await fetch(`${BASE_URL}/users/${id}`, { method: 'DELETE' });
+        await fetch(`${BASE_URL}/users/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         fetchUsers();
     };
 
@@ -85,7 +103,13 @@ const Users: React.FC = () => {
 
      const fetchAvailableRoles = async () => {
        try {
-         const response = await fetch(`${BASE_URL}/roles`);
+         const response = await fetch(`${BASE_URL}/roles`, {
+           method: "GET",
+           headers: {
+             "Content-Type": "application/json",
+             Authorization: `Bearer ${localStorage.getItem("token")}`,
+           },
+         });
          const data = await response.json();
          setAvailableRoles(data);
        } catch (error) {
@@ -192,7 +216,7 @@ const Users: React.FC = () => {
                 <Form.Control
                   type="text"
                   placeholder="Enter username"
-                  value={password}
+                  value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
                 />
@@ -202,7 +226,7 @@ const Users: React.FC = () => {
                 <Form.Control
                   type="password"
                   placeholder="Enter password"
-                  value={username}
+                  value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
