@@ -8,6 +8,8 @@ import LoginForm from './components/LoginForm';
 import Logout from './components/Logout';
 import { Modal } from 'react-bootstrap';
 import Blogs from './components/Blogs';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App: React.FC = () => {
 
@@ -54,6 +56,7 @@ const App: React.FC = () => {
             <LoginForm onLoginSuccess={handleLoginSuccess} />
           </Modal.Body>
         </Modal>
+        <ToastContainer position="bottom-left" />
       </Router>
     );
 };

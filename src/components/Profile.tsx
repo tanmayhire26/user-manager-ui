@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { BASE_URL } from '../constants';
 import { decodeToken } from '../utils/auth';
+import { toast } from 'react-toastify';
 
 interface ProfileProps {
     show: boolean;
@@ -29,24 +30,23 @@ const Profile: React.FC<ProfileProps> = ({ show, onHide }) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({
-                    username,
-                    // password,
-                    // currentPassword
-                })
+                body: JSON.stringify({ username })
             });
 
+            const data = await response.json();
+            
             if (response.ok) {
-                const data = await response.json();
                 if (data.token) {
                     localStorage.setItem('token', data.token);
                 }
+                toast.success('Profile updated successfully');
                 onHide();
             } else {
-                alert('Failed to update profile');
+                toast.error(data.message || 'Failed to update profile');
             }
         } catch (error) {
             console.error('Error updating profile:', error);
+            toast.error(error instanceof Error ? error.message : 'An unexpected error occurred');
         }
     };
 

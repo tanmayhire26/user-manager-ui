@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table, Form, Modal } from 'react-bootstrap';
 import { BASE_URL } from '../constants';
+import { toast } from 'react-toastify';
 
 interface User {
     _id: string;
     username: string;
     roles: string[];
 }
+
 interface Role {
-  _id: string;
-  name: string;
+    _id: string;
+    name: string;
 }
 
 const Users: React.FC = () => {
@@ -20,11 +22,10 @@ const Users: React.FC = () => {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
-     const [showRoleModal, setShowRoleModal] = useState(false);
-     const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
-     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-     const [currentUserForRoles, setCurrentUserForRoles] = useState<User | null>(null);
+    const [showRoleModal, setShowRoleModal] = useState(false);
+    const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+    const [currentUserForRoles, setCurrentUserForRoles] = useState<User | null>(null);
 
     useEffect(() => {
         fetchUsers();
@@ -32,22 +33,30 @@ const Users: React.FC = () => {
     }, []);
 
     const fetchUsers = async () => {
-        const response = await fetch(`${BASE_URL}/users`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const data = await response.json();
-        setUsers(data);
+        try {
+            const response = await fetch(`${BASE_URL}/users`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setUsers(data);
+            } else {
+                toast.error(data.message || 'Failed to fetch users');
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to load users');
+        }
     };
 
     const handleShow = (user?: User) => {
         if (user) {
             setCurrentUser(user);
             setName(user.username);
-            // setEmail(user.email);
         } else {
             setCurrentUser(null);
             setName('');
@@ -63,92 +72,125 @@ const Users: React.FC = () => {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        if (currentUser) {
-            await fetch(`${BASE_URL}/users/${currentUser._id}`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              body: JSON.stringify({ name, username, password }),
-            });
-        } else {
-            await fetch(`${BASE_URL}/users`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              body: JSON.stringify({ username, email, password }),
-            });
+        try {
+            const response = await fetch(
+                currentUser 
+                    ? `${BASE_URL}/users/${currentUser._id}`
+                    : `${BASE_URL}/users`,
+                {
+                    method: currentUser ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({ username, email, password }),
+                }
+            );
+            const data = await response.json();
+            
+            if (response.ok) {
+                toast.success(`User ${currentUser ? 'updated' : 'created'} successfully`);
+                await fetchUsers();
+                handleClose();
+            } else {
+                toast.error(data.message || `Failed to ${currentUser ? 'update' : 'create'} user`);
+            }
+        } catch (error) {
+            console.error('Error saving user:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to save user');
         }
-        fetchUsers();
-        handleClose();
     };
 
     const handleDelete = async (id: string) => {
-        await fetch(`${BASE_URL}/users/${id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        fetchUsers();
+        if (window.confirm('Are you sure you want to delete this user?')) {
+            try {
+                const response = await fetch(`${BASE_URL}/users/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    toast.success('User deleted successfully');
+                    await fetchUsers();
+                } else {
+                    toast.error(data.message || 'Failed to delete user');
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                toast.error(error instanceof Error ? error.message : 'Failed to delete user');
+            }
+        }
     };
 
-    
+    const fetchAvailableRoles = async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/roles`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                setAvailableRoles(data);
+            } else {
+                toast.error(data.message || 'Failed to fetch roles');
+            }
+        } catch (error) {
+            console.error('Error fetching roles:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to load roles');
+        }
+    };
 
-    
+    const handleShowRoles = (user: User) => {
+        setCurrentUserForRoles(user);
+        setSelectedRoles(user.roles || []);
+        setShowRoleModal(true);
+    };
 
-     const fetchAvailableRoles = async () => {
-       try {
-         const response = await fetch(`${BASE_URL}/roles`, {
-           method: "GET",
-           headers: {
-             "Content-Type": "application/json",
-             Authorization: `Bearer ${localStorage.getItem("token")}`,
-           },
-         });
-         const data = await response.json();
-         setAvailableRoles(data);
-       } catch (error) {
-         console.error("Error fetching roles:", error);
-       }
-     };
+    const handleRoleChange = (roleId: string) => {
+        setSelectedRoles(prev =>
+            prev.includes(roleId)
+                ? prev.filter(id => id !== roleId)
+                : [...prev, roleId]
+        );
+    };
 
-     const handleShowRoles = (user: User) => {
-       setCurrentUserForRoles(user);
-       setSelectedRoles(user.roles || []);
-       setShowRoleModal(true);
-     };
-
-     const handleRoleChange = (roleId: string) => {
-       setSelectedRoles((prev) =>
-         prev.includes(roleId)
-           ? prev.filter((id) => id !== roleId)
-           : [...prev, roleId]
-       );
-     };
-
-     const handleRoleSubmit = async () => {
-       if (currentUserForRoles) {
-         try {
-           await fetch(`${BASE_URL}/users/${currentUserForRoles._id}/roles`, {
-             method: "PATCH",
-             headers: {
-               "Content-Type": "application/json",
-               Authorization: `Bearer ${localStorage.getItem("token")}`,
-             },
-             body: JSON.stringify({ roleIds: selectedRoles }),
-           });
-           fetchUsers();
-           setShowRoleModal(false);
-         } catch (error) {
-           console.error("Error updating user roles:", error);
-         }
-       }
-     };
+    const handleRoleSubmit = async () => {
+        if (currentUserForRoles) {
+            try {
+                const response = await fetch(
+                    `${BASE_URL}/users/${currentUserForRoles._id}/roles`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                        body: JSON.stringify({ roles: selectedRoles }),
+                    }
+                );
+                const data = await response.json();
+                
+                if (response.ok) {
+                    toast.success('User roles updated successfully');
+                    await fetchUsers();
+                    setShowRoleModal(false);
+                } else {
+                    toast.error(data.message || 'Failed to update user roles');
+                }
+            } catch (error) {
+                console.error('Error updating user roles:', error);
+                toast.error(error instanceof Error ? error.message : 'Failed to update user roles');
+            }
+        }
+    };
 
     return (
       <div>

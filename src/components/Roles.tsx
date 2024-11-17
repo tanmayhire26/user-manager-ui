@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table, Form, Modal } from 'react-bootstrap';
 import { AVAILABLE_PERMISSIONS, BASE_URL } from '../constants';
+import { toast } from 'react-toastify';
 
 interface Role {
     _id: string;
@@ -27,15 +28,25 @@ const Roles: React.FC = () => {
     }, []);
 
     const fetchRoles = async () => {
-        const response = await fetch(`${BASE_URL}/roles`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const data = await response.json();
-        setRoles(data);
+        try {
+            const response = await fetch(`${BASE_URL}/roles`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                setRoles(data);
+            } else {
+                toast.error(data.message || 'Failed to fetch roles');
+            }
+        } catch (error) {
+            console.error('Error fetching roles:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to load roles');
+        }
     };
 
     const handleShow = (role?: Role) => {
@@ -56,38 +67,58 @@ const Roles: React.FC = () => {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        if (currentRole) {
-            await fetch(`${BASE_URL}/roles/${currentRole._id}`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              body: JSON.stringify({ name }),
-            });
-        } else {
-            await fetch(`${BASE_URL}/roles`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              body: JSON.stringify({ name }),
-            });
+        try {
+            const response = await fetch(
+                currentRole 
+                    ? `${BASE_URL}/roles/${currentRole._id}`
+                    : `${BASE_URL}/roles`,
+                {
+                    method: currentRole ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({ name }),
+                }
+            );
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                await fetchRoles();
+                handleClose();
+                toast.success(`Role ${currentRole ? 'updated' : 'created'} successfully`);
+            } else {
+                toast.error(data.message || `Failed to ${currentRole ? 'update' : 'create'} role`);
+            }
+        } catch (error) {
+            console.error('Error saving role:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to save role');
         }
-        fetchRoles();
-        handleClose();
     };
 
     const handleDelete = async (id: string) => {
-        await fetch(`${BASE_URL}/roles/${id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        fetchRoles();
+        try {
+            const response = await fetch(`${BASE_URL}/roles/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                await fetchRoles();
+                toast.success('Role deleted successfully');
+            } else {
+                toast.error(data.message || 'Failed to delete role');
+            }
+        } catch (error) {
+            console.error('Error deleting role:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to delete role');
+        }
     };
 
     const handleShowPermissions = (role: Role) => {
@@ -105,21 +136,34 @@ const Roles: React.FC = () => {
     };
 
     const handlePermissionSubmit = async () => {
-      if (currentRoleForPermissions) {
-        await fetch(
-          `${BASE_URL}/roles/${currentRoleForPermissions._id}/permissions`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({ permissions: selectedPermissions }),
-          }
-        );
-        fetchRoles();
-        setShowPermissionModal(false);
-      }
+        if (currentRoleForPermissions) {
+            try {
+                const response = await fetch(
+                    `${BASE_URL}/roles/${currentRoleForPermissions._id}/permissions`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                        body: JSON.stringify({ permissions: selectedPermissions }),
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    await fetchRoles();
+                    setShowPermissionModal(false);
+                    toast.success('Permissions updated successfully');
+                } else {
+                    toast.error(data.message || 'Failed to update permissions');
+                }
+            } catch (error) {
+                console.error('Error updating permissions:', error);
+                toast.error(error instanceof Error ? error.message : 'Failed to update permissions');
+            }
+        }
     };
 
     return (

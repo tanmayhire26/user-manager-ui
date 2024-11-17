@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Modal, Form } from "react-bootstrap";
 import { BASE_URL } from "../constants";
+import { toast } from "react-toastify";
 
 interface Blog {
   _id: string;
   title: string;
   content: string;
-  author: string;
+  author: {username: string};
   createdAt: string;
 }
 
@@ -24,9 +25,17 @@ const Blogs: React.FC = () => {
         },
       });
       const data = await response.json();
-      setBlogs(data);
+      console.log("data of blogs after fetchibng", data)
+      
+      if (response.ok) {
+        setBlogs(Array.isArray(data) ? data : []);
+      } else {
+        toast.error(data.message || 'Failed to fetch blogs');
+      }
     } catch (error) {
-      console.error("Error fetching blogs:", error);
+      console.error('Error fetching blogs:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to load blogs');
+      setBlogs([]);
     }
   };
 
@@ -50,28 +59,43 @@ const Blogs: React.FC = () => {
         body: JSON.stringify(currentBlog),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setShowModal(false);
-        fetchBlogs();
+        await fetchBlogs();
         setCurrentBlog({});
+        toast.success(`Blog ${isEditing ? 'updated' : 'created'} successfully`);
+      } else {
+        toast.error(data.message || `Failed to ${isEditing ? 'update' : 'create'} blog`);
       }
     } catch (error) {
-      console.error("Error saving blog:", error);
+      console.error('Error saving blog:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save blog');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this blog?")) {
+    if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        await fetch(`${BASE_URL}/blog/${id}`, {
+        const response = await fetch(`${BASE_URL}/blog/${id}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        fetchBlogs();
+
+        const data = await response.json();
+
+        if (response.ok) {
+          await fetchBlogs();
+          toast.success('Blog deleted successfully');
+        } else {
+          toast.error(data.message || 'Failed to delete blog');
+        }
       } catch (error) {
-        console.error("Error deleting blog:", error);
+        console.error('Error deleting blog:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to delete blog');
       }
     }
   };
@@ -94,6 +118,7 @@ const Blogs: React.FC = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
+            <th>#</th>
             <th>Title</th>
             <th>Author</th>
             <th>Created At</th>
@@ -101,38 +126,55 @@ const Blogs: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {blogs?.length !== 0 && blogs.map((blog) => (
-            <tr key={blog._id}>
-              <td>{blog.title}</td>
-              <td>{blog.author}</td>
-              <td>{new Date(blog.createdAt).toLocaleDateString()}</td>
-              <td>
-                <Button
-                  variant="info"
-                  size="sm"
-                  className="me-2"
-                  onClick={() => {
-                    setCurrentBlog(blog);
-                    setIsEditing(true);
-                    setShowModal(true);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDelete(blog._id)}
-                >
-                  Delete
-                </Button>
+          {blogs && blogs.length > 0 ? (
+            blogs.map((blog, index) => (
+              <tr key={blog._id}>
+                <td>{index + 1}</td>
+                <td>{blog.title || 'N/A'}</td>
+                <td>{blog.author?.username|| 'N/A'}</td>
+                <td>
+                  {blog.createdAt 
+                    ? new Date(blog.createdAt).toLocaleDateString() 
+                    : 'N/A'}
+                </td>
+                <td>
+                  <Button
+                    variant="info"
+                    size="sm"
+                    className="me-2"
+                    onClick={() => {
+                      setCurrentBlog(blog);
+                      setIsEditing(true);
+                      setShowModal(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleDelete(blog._id)}
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={5} className="text-center">
+                No blogs found
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => {
+        setShowModal(false);
+        setCurrentBlog({});
+        setIsEditing(false);
+      }}>
         <Modal.Header closeButton>
           <Modal.Title>{isEditing ? "Edit Blog" : "Add New Blog"}</Modal.Title>
         </Modal.Header>
