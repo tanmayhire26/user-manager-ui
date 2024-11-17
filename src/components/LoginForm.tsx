@@ -29,7 +29,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
             const data = await response.json();
             console.log("data..........after login call...", data)
-            onLoginSuccess(data.token); // Call the success handler with the token
+            onLoginSuccess(data.access_token); // Call the success handler with the token
         } catch (error) {
             console.error('Error logging in:', error);
         }

@@ -91,7 +91,7 @@ const Roles: React.FC = () => {
         await fetch(
           `${BASE_URL}/roles/${currentRoleForPermissions._id}/permissions`,
           {
-            method: "PUT",
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("token")}`,

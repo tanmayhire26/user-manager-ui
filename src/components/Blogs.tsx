@@ -18,7 +18,7 @@ const Blogs: React.FC = () => {
 
   const fetchBlogs = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/blogs`, {
+      const response = await fetch(`${BASE_URL}/blog`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -37,8 +37,8 @@ const Blogs: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = isEditing
-      ? `${BASE_URL}/blogs/${currentBlog._id}`
-      : `${BASE_URL}/blogs`;
+      ? `${BASE_URL}/blog/${currentBlog._id}`
+      : `${BASE_URL}/blog`;
 
     try {
       const response = await fetch(url, {
@@ -63,7 +63,7 @@ const Blogs: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this blog?")) {
       try {
-        await fetch(`${BASE_URL}/blogs/${id}`, {
+        await fetch(`${BASE_URL}/blog/${id}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -101,7 +101,7 @@ const Blogs: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {blogs.map((blog) => (
+          {blogs?.length !== 0 && blogs.map((blog) => (
             <tr key={blog._id}>
               <td>{blog.title}</td>
               <td>{blog.author}</td>

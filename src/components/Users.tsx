@@ -111,12 +111,12 @@ const Users: React.FC = () => {
        if (currentUserForRoles) {
          try {
            await fetch(`${BASE_URL}/users/${currentUserForRoles._id}/roles`, {
-             method: "PUT",
+             method: "PATCH",
              headers: {
                "Content-Type": "application/json",
                Authorization: `Bearer ${localStorage.getItem("token")}`,
              },
-             body: JSON.stringify({ roles: selectedRoles }),
+             body: JSON.stringify({ roleIds: selectedRoles }),
            });
            fetchUsers();
            setShowRoleModal(false);
